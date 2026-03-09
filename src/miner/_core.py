@@ -33,7 +33,11 @@ class Miner(BaseMiner):
         hotkey = synapse.dendrite.hotkey
         uid = self.metagraph.hotkeys.index(hotkey)
         stake = self.metagraph.S[uid]
+        bt.logging.info(f"Validator with the hotkey {hotkey} is querying your node")
         if stake < self.config.MIN_VALIDATOR_STAKE:
+            bt.logging.warning(
+                f"Validator with the hotkey {hotkey} has been blacklisted"
+            )
             return True, "Not enough stake"
         return False, "Passed"
 
