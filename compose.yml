@@ -1,6 +1,6 @@
 services:
   agent-miner:
-    image: redteamsubnet61/agent-miner:3.0.4-260226
+    image: redteamsubnet61/agent-miner:3.0.5-260311
     build:
       context: .
     restart: unless-stopped
