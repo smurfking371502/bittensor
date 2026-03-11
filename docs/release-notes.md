@@ -6,6 +6,19 @@ hide:
 
 # 📌 Release Notes
 
+## v3.0.5-260311 (2026-03-11)
+
+<!-- Release notes generated using configuration in .github/release.yml at v3.0.5-260311 -->
+
+## What's Changed
+### ✨ Features
+* Updating the reveal interval by @aliyuldashev in https://github.com/RedTeamSubnet/miner/pull/4
+
+## New Contributors
+* @aliyuldashev made their first contribution in https://github.com/RedTeamSubnet/miner/pull/4
+
+**Full Changelog**: https://github.com/RedTeamSubnet/miner/compare/v3.0.4-260226...v3.0.5-260311
+
 ## v3.0.4-260226 (2026-02-26)
 
 <!-- Release notes generated using configuration in .github/release.yml at v3.0.4-260226 -->
