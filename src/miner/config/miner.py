@@ -6,7 +6,7 @@ if sys.version_info >= (3, 11):
 else:
     from typing_extensions import Self
 
-from pydantic import Field, model_validator, field_validator
+from pydantic import Field, model_validator, field_validator, computed_field
 from pydantic_settings import SettingsConfigDict
 
 from redteam_core.config import BaseConfig, ENV_PREFIX_MINER, ENV_PREFIX
@@ -24,10 +24,6 @@ class MinerMainConfig(BaseConfig):
     HOTKEY_NAME: str = Field(
         default="default", description="Name of the hotkey to use for mining."
     )
-    # HOTKEY_ADDRESS: Optional[str] = Field(
-    #     default=None,
-    #     description="SS58 address of the hotkey to use for mining (overrides HOTKEY_NAME if set)",
-    # )
     AXON_PORT: int = Field(
         default=8091,
         description="Port on which the axon will listen for incoming connections.",
@@ -42,6 +38,21 @@ class MinerMainConfig(BaseConfig):
         min_length=3,
         description="Path to store commit data for the miner.",
     )
+    CONFIG_DIR: str = Field(
+        default="./volumes/configs/agent-miner",
+        min_length=1,
+        description="Directory containing miner configuration files (active_commit.yaml, personal_access_token.txt).",
+    )
+
+    @computed_field
+    @property
+    def PAT_FILE_PATH(self) -> str:
+        return os.path.join(self.CONFIG_DIR, "personal_access_token.txt")
+
+    @computed_field
+    @property
+    def ACTIVE_COMMIT_FILE(self) -> str:
+        return os.path.join(self.CONFIG_DIR, "active_commit.yaml")
 
     @field_validator("WALLET_DIR")
     @classmethod
@@ -54,6 +65,17 @@ class MinerMainConfig(BaseConfig):
         if "~" in val:
             val = os.path.expanduser(val)
 
+        return val
+
+    @field_validator("CONFIG_DIR")
+    @classmethod
+    def _check_config_dir(cls, val: str) -> str:
+        _config_dir_env = f"{ENV_PREFIX}MINER_CONFIG_DIR"
+        if _config_dir_env in os.environ:
+            val = os.getenv(_config_dir_env, "")
+
+        if "~" in val:
+            val = os.path.expanduser(val)
         return val
 
     @model_validator(mode="after")
@@ -69,6 +91,9 @@ class MinerMainConfig(BaseConfig):
 
         if not os.path.isdir(self.COMMIT_STORAGE_DIR):
             os.makedirs(self.COMMIT_STORAGE_DIR, exist_ok=True)
+
+        if not os.path.isdir(self.CONFIG_DIR):
+            os.makedirs(self.CONFIG_DIR, exist_ok=True)
 
         return self
 

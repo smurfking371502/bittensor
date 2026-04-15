@@ -12,12 +12,13 @@ services:
       RT_BTCLI_WALLET_DIR: "${RT_BTCLI_WALLET_DIR:?error}"
       RT_MINER_WALLET_NAME: ${RT_MINER_WALLET_NAME:?error}
       RT_MINER_HOTKEY_NAME: ${RT_MINER_HOTKEY_NAME:?error}
+      RT_MINER_CONFIG_DIR: /app/agent-miner/config/
     env_file:
       - path: .env
         required: false
     volumes:
       - "${RT_BTCLI_WALLET_DIR:?error}:${RT_BTCLI_WALLET_DIR:?error}"
-      - "${RT_MINER_COMMIT_FILE_PATH:-./volumes/configs/agent-miner/active_commit.yaml}:/app/agent-miner/miner/config/active_commit.yaml"
+      - "./volumes/configs/agent-miner:/app/agent-miner/config/"
       - "./volumes/storage/agent-miner/logs:/var/log/agent-miner"
       - "./volumes/storage/agent-miner/data:/var/lib/agent-miner"
     ports:

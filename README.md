@@ -71,6 +71,7 @@ git clone https://github.com/RedTeamSubnet/miner.git && \
 ```sh
 # Copy template active commit file:
 cp -v ./templates/configs/active_commit.yaml ./volumes/configs/agent-miner/active_commit.yaml
+cp -v ./templates/configs/personal_access_token.txt ./volumes/configs/agent-miner/personal_access_token.txt
 
 # Update active commit file with your own commit hash:
 nano ./volumes/configs/agent-miner/active_commit.yaml

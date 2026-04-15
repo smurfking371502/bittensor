@@ -1,4 +1,5 @@
 import os
+import sys
 import pathlib
 import pickle
 from typing import Tuple
@@ -16,6 +17,7 @@ class Miner(BaseMiner):
         super().__init__()
         self.active_challenges = self._get_active_challenges()
         self.synapse_commit = self._load_synapse_commit()
+        self._verify_docker_info()
 
     def forward(self, synapse: Commit) -> Commit:
         active_commits = self._load_active_commit()
@@ -56,10 +58,13 @@ class Miner(BaseMiner):
             pickle.dump(self.synapse_commit, f)
 
     def _load_active_commit(self) -> list:
-
-        _current_path = pathlib.Path(__file__).parent.resolve()
-        commit_file = _current_path / "config" / "active_commit.yaml"
-        commits = yaml.load(open(commit_file), yaml.FullLoader)
+        commit_file = self.miner_config.ACTIVE_COMMIT_FILE
+        if not os.path.exists(commit_file):
+            bt.logging.critical(f"Active commit file not found at {commit_file}")
+            sys.exit(1)
+        
+        with open(commit_file, "r") as f:
+            commits = yaml.load(f, yaml.FullLoader)
 
         if commits is None:
             return []
@@ -67,6 +72,53 @@ class Miner(BaseMiner):
         valid_commits = self._check_format_commits(commits)
 
         return valid_commits
+
+    def _extract_single_docker_username(self) -> str:
+        commits = self._load_active_commit()
+        usernames = set()
+        for commit in commits:
+            _, docker_info = commit.split("---")
+            docker_id, _ = docker_info.split("@sha256:")
+            if "/" in docker_id:
+                usernames.add(docker_id.split("/")[0])
+
+        if len(usernames) == 0:
+            bt.logging.critical("No Docker Hub username found in active_commit.yaml")
+            sys.exit(1)
+        if len(usernames) > 1:
+            bt.logging.critical(f"Multiple Docker Hub usernames found: {usernames}. Only one allowed.")
+            sys.exit(1)
+
+        return list(usernames)[0]
+
+    def _verify_docker_info(self):
+        username = self._extract_single_docker_username()
+        self.verify_and_sync_docker_info(username)
+        self._verify_commits_private(username)
+
+    def _verify_commits_private(self, username: str):
+        pat_path = self.miner_config.PAT_FILE_PATH
+        if not os.path.exists(pat_path):
+            bt.logging.critical(f"PAT file not found at {pat_path}. Cannot verify repos.")
+            sys.exit(1)
+
+        with open(pat_path, "r") as f:
+            pat = f.read().strip()
+
+        commits = self._load_active_commit()
+        for commit in commits:
+            _, docker_info = commit.split("---")
+            docker_id, _ = docker_info.split("@sha256:")
+            if "/" not in docker_id:
+                bt.logging.warning(f"Skipping commit with no repository path: {commit}")
+                continue
+            
+            repo_name = docker_id.split("/")[1]
+            if not self.is_dockerhub_repo_private(username, repo_name, pat):
+                bt.logging.critical(f"Repository {repo_name} is public! Only private repos allowed. Exiting.")
+                sys.exit(1)
+
+        bt.logging.success("All commits are from private Docker Hub repositories.")
 
     def _get_active_challenges(self) -> dict:
         """Load active_challenges.yaml from redteam_core package"""
