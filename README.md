@@ -71,10 +71,24 @@ git clone https://github.com/RedTeamSubnet/miner.git && \
 ```sh
 # Copy template active commit file:
 cp -v ./templates/configs/active_commit.yaml ./volumes/configs/agent-miner/active_commit.yaml
-
-# Update active commit file with your own commit hash:
-nano ./volumes/configs/agent-miner/active_commit.yaml
+cp -v ./templates/configs/personal_access_token.txt ./volumes/configs/agent-miner/personal_access_token.txt
 ```
+
+### 4. Update commit file and personal access token file
+
+1. Update the **commit hash** in the **`active_commit.yaml`** file to your own value.
+
+    ```sh
+        # Edit active commit file to fit in your environment
+        nano ./volumes/configs/agent-miner/active_commit.yaml
+    ```
+
+2. Update the **personal access token** in the **`personal_access_token.txt`** file to your own value.
+
+    ```sh
+        # Edit personal access token file to fit in your environment
+        nano ./volumes/configs/agent-miner/personal_access_token.txt
+    ```
 
 ### 4. 🌎 Configure environment variables
 

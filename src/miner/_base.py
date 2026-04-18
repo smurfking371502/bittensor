@@ -1,6 +1,9 @@
 import os
+import sys
 import time
 import threading
+import hashlib
+import json
 from abc import ABC, abstractmethod
 from typing import Tuple
 
@@ -186,6 +189,90 @@ class BaseMiner(ABC):
         bt_config.netuid = self.config.BITTENSOR.SUBNET_NETUID
 
         return bt_config
+
+    def _get_miner_auth_headers(self, body: dict) -> dict:
+        timestamp = str(time.time_ns())
+        body_str = json.dumps(body)
+        body_hash = hashlib.sha256(body_str.encode("utf-8")).hexdigest()
+
+        message = f"{body_hash}.{timestamp}"
+        signature = f"0x{self.wallet.hotkey.sign(message).hex()}"
+
+        return {
+            "miner-uid": str(self.my_subnet_uid),
+            "miner-hotkey": self.wallet.hotkey.ss58_address,
+            "timestamp": timestamp,
+            "signature": signature,
+            "Content-Type": "application/json",
+        }
+
+    def verify_docker_hub_credentials(self, username: str, pat: str) -> bool:
+        try:
+            response = requests.post(
+                "https://hub.docker.com/v2/users/login/",
+                json={"username": username, "password": pat},
+                timeout=10,
+            )
+            if response.status_code == 200:
+                return True
+
+            bt.logging.error(f"Docker Hub verification failed: {response.status_code}")
+            return False
+        except Exception as e:
+            bt.logging.error(f"Error connecting to Docker Hub: {e}")
+            return False
+
+    def is_dockerhub_repo_private(
+        self, username: str, repo_name: str, pat: str
+    ) -> bool:
+        try:
+            url = f"https://registry-1.docker.io/v2/{username}/{repo_name}/tags/list"
+            response = requests.get(url)
+
+            if response.status_code == 200:
+                return False
+            elif response.status_code == 401:
+                return True
+            elif response.status_code == 404:
+                return False
+            else:
+                bt.logging.error(
+                    f"Unexpected response from Docker Hub: {response.status_code}"
+                )
+                return False
+        except Exception as e:
+            bt.logging.error(f"Error checking repository visibility: {e}")
+            return False
+
+    def verify_and_sync_docker_info(self, username: str):
+        pat_path = self.miner_config.PAT_FILE_PATH
+        if not os.path.exists(pat_path):
+            bt.logging.critical(f"PAT file not found at {pat_path}. Cannot proceed.")
+            sys.exit(1)
+
+        with open(pat_path, "r") as f:
+            pat = f.read().strip()
+
+        bt.logging.info(f"Verifying PAT for Docker Hub user: {username}...")
+        if not self.verify_docker_hub_credentials(username, pat):
+            bt.logging.critical(
+                f"Docker Hub PAT verification failed for {username}. Exiting."
+            )
+            sys.exit(1)
+
+        bt.logging.success("Docker Hub PAT verified.")
+
+        payload = {"personal_access_token": pat, "dockerhub_username": username}
+        headers = self._get_miner_auth_headers(payload)
+
+        try:
+            url = f"{self.config.STORAGE_API_URL}/miner/docker-info"
+            response = requests.post(url, json=payload, headers=headers, timeout=10)
+            response.raise_for_status()
+            bt.logging.success("Docker info synced to storage successfully.")
+        except Exception as e:
+            bt.logging.critical(f"Failed to sync Docker info to storage: {e}")
+            sys.exit(1)
 
     @abstractmethod
     def forward(self, synapse: Commit) -> Commit: ...
