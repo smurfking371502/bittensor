@@ -6,6 +6,17 @@ hide:
 
 # 📌 Release Notes
 
+## v3.1.0-260418 (2026-04-18)
+
+<!-- Release notes generated using configuration in .github/release.yml at v3.1.0-260418 -->
+
+## What's Changed
+### ✨ Features
+* feat: implement Docker Hub authentication and configuration management by @aliyuldashev in https://github.com/RedTeamSubnet/miner/pull/5
+
+
+**Full Changelog**: https://github.com/RedTeamSubnet/miner/compare/v3.0.6-260402...v3.1.0-260418
+
 ## v3.0.6-260402 (2026-04-02)
 
 <!-- Release notes generated using configuration in .github/release.yml at v3.0.6-260402 -->
