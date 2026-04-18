@@ -208,7 +208,7 @@ class BaseMiner(ABC):
 
     def verify_docker_hub_credentials(self, username: str, pat: str) -> bool:
         try:
-            response = requests.get(
+            response = requests.post(
                 "https://hub.docker.com/v2/users/login/",
                 json={"username": username, "password": pat},
                 timeout=10,
@@ -216,10 +216,10 @@ class BaseMiner(ABC):
             if response.status_code == 200:
                 return True
 
-            print(f"Docker Hub verification failed: {response.status_code}")
+            bt.logging.error(f"Docker Hub verification failed: {response.status_code}")
             return False
         except Exception as e:
-            print(f"Error connecting to Docker Hub: {e}")
+            bt.logging.error(f"Error connecting to Docker Hub: {e}")
             return False
 
     def is_dockerhub_repo_private(
