@@ -1,6 +1,6 @@
 services:
   agent-miner:
-    image: redteamsubnet61/agent-miner:3.1.2-260424
+    image: redteamsubnet61/agent-miner:3.1.3-260511
     platform: linux/amd64
     build:
       context: .
