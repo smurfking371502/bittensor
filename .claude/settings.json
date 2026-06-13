@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//home/smurf-king/.bittensor/wallets/smurf_king/**)",
+      "Bash(docker exec *)",
+      "Bash(docker compose *)",
+      "Bash(python -c \"import bittensor; print\\([x for x in dir\\(bittensor\\) if 'error' in x.lower\\(\\) or 'key' in x.lower\\(\\)]\\)\")",
+      "Bash(pip show *)",
+      "Bash(pip3 show *)",
+      "Bash(conda run *)",
+      "Bash(find /home/smurf-king/redteam61 -name \"pyvenv.cfg\" 2>/dev/null; ls /home/smurf-king/redteam61/miner/ 2>/dev/null)",
+      "Read(//home/smurf-king/redteam61/**)",
+      "Bash(grep -r \"KeyFileError\" /home/smurf-king/miniconda3/envs/redteam/ 2>/dev/null | head -10; find /home/smurf-king/miniconda3/envs/redteam -path \"*/bittensor*\" -name \"__init__.py\" 2>/dev/null | head -5)",
+      "Read(//home/smurf-king/miniconda3/envs/redteam/**)",
+      "Bash(find /home/smurf-king/.local -path \"*/bittensor*\" -name \"*.py\" 2>/dev/null | head -5; find /usr -path \"*/bittensor*\" -name \"*.py\" 2>/dev/null | head -5)",
+      "Read(//home/smurf-king/.local/**)",
+      "Read(//usr/**)",
+      "Read(//home/smurf-king/**)",
+      "Read(//home/**)"
+    ]
+  }
+}
