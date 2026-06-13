@@ -42,6 +42,7 @@ class BaseMiner(ABC):
         bt.logging.info("Setting up Bittensor objects.")
 
         bt_config = self._create_bittensor_config()
+        print(f"bt_config: {bt_config}")
 
         self.wallet = bt.wallet(config=bt_config)
         bt.logging.info(f"Wallet: {self.wallet}")
@@ -266,7 +267,7 @@ class BaseMiner(ABC):
         headers = self._get_miner_auth_headers(payload)
 
         try:
-            url = f"{self.config.STORAGE_API_URL}/miner/docker-info"
+            url = f"{self.config.STORAGE_API_URL.rstrip('/')}/miner/docker-info"
             response = requests.post(url, json=payload, headers=headers, timeout=10)
             response.raise_for_status()
             bt.logging.success("Docker info synced to storage successfully.")
